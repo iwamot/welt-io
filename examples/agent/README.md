@@ -11,6 +11,23 @@ The example agent for [Welt](https://github.com/iwamot/welt)'s [Quick Start](htt
 | [Strands Agents Tools](https://github.com/strands-agents/tools) | Provides the `current_time` and `generate_image` tools |
 | welt-io | Adapts the wire to Welt |
 
+## Run Locally
+
+The agent runs on your machine as-is — [Welt's Quick Start](https://github.com/iwamot/welt#quick-start) starts here, before anything is deployed: the AgentCore SDK serves the same HTTP surface locally, on port 8080, that AgentCore Runtime serves in the cloud, and Welt's local mode invokes it there.
+
+Fetch the agent and run it with [uv](https://docs.astral.sh/uv/):
+
+```sh
+curl -O https://raw.githubusercontent.com/iwamot/welt-io/main/examples/agent/main.py
+MODEL_ID=global.anthropic.claude-sonnet-4-6 \
+  uv run --with bedrock-agentcore --with strands-agents-tools --with welt-io \
+  --with "botocore[crt]" main.py
+```
+
+The process needs AWS credentials the standard SDK way — environment variables, `AWS_PROFILE`, an SSO session, `aws login` (which is why `botocore[crt]` is included) — because the model still runs on Amazon Bedrock. `MODEL_ID` takes any Converse model with access enabled in the Amazon Bedrock console, in the region your credentials point at; unset, the agent falls back to the Strands default model — currently the same `global.anthropic.claude-sonnet-4-6`. To try image generation too, also enable access for the Stability AI image models, in us-west-2 — the `generate_image` tool defaults to Stable Image Core but may pick another.
+
+One difference from the cloud: AgentCore Runtime gives every session its own microVM, while the local server is a single process for all sessions — the agent stashes an interrupted run in one slot, so keep interrupt experiments to one thread at a time.
+
 ## Deploy
 
 Deploy with the [AgentCore CLI](https://github.com/aws/agentcore-cli):
@@ -25,7 +42,7 @@ uv add --project app/WeltExample welt-io strands-agents-tools
 agentcore deploy
 ```
 
-The agent uses the Strands default model — currently an Anthropic Claude model — so enable access for it in the Amazon Bedrock console, in the region you deployed to. To try image generation too, also enable access for the Stability AI image models, in us-west-2 — the `generate_image` tool defaults to Stable Image Core but may pick another. Note the agent runtime ARN from the deploy output: Welt's `AGENT_ARN` points at it.
+The agent uses the Strands default model — currently an Anthropic Claude model — so enable access for it in the Amazon Bedrock console, in the region you deployed to, or point the `MODEL_ID` environment variable at another Converse model. To try image generation too, also enable access for the Stability AI image models, in us-west-2 — the `generate_image` tool defaults to Stable Image Core but may pick another. Note the agent runtime ARN from the deploy output: Welt's `AGENT_ARN` points at it.
 
 ## Tools
 

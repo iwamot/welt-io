@@ -113,6 +113,8 @@ async def invoke(payload: dict) -> AsyncIterator[dict]:
             return
         decode_file_blocks(messages)  # base64 file bytes -> raw bytes, in place
         agent = Agent(
+            # Any Converse model; unset falls back to the Strands default.
+            model=os.environ.get("MODEL_ID"),
             tools=[current_time, generate_image, sample_dangerous_action],
             callback_handler=None,
         )
